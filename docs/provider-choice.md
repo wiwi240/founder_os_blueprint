@@ -2,9 +2,9 @@
 
 ## Choix retenu pour l'exercice
 
-Je retiens `OpenAI` en cloud pour le premier agent `Founder OS Qualifier`.
+Je retiens un agent local leger en `Python 3` pour le premier agent `Founder OS Qualifier`.
 
-Ce choix n'est pas ideologique. Il est simplement plus propre pour un day 1 que de simuler une architecture locale fragile sans vraie preuve de qualite.
+Ce choix n'est pas ideologique. Il est simplement plus propre pour un day 1 que de documenter un agent cloud sans execution locale reelle depuis le repo.
 
 ## Probleme reel a resoudre
 
@@ -16,33 +16,35 @@ Le vrai besoin est de qualifier vite une demande entrante sans :
 - sous-estimer le scope
 - envoyer des informations sensibles sans cadre
 
-Pour ce besoin, la priorite est la qualite de raisonnement et la vitesse d'execution, pas l'optimisation d'infrastructure.
+Pour ce besoin, la priorite est d'avoir un agent qui tourne vraiment, qui soit lisible, testable et quasi gratuit a maintenir.
 
-## Pourquoi OpenAI
+## Pourquoi un agent local deterministe
 
-- bon niveau de reformulation et de synthese pour un agent de qualification
-- setup minimal pour produire une preuve rapidement
-- compatible avec une approche simple : prompt systeme + entree utilisateur + sortie structuree
+- execution locale immediate
+- aucune dependance externe
+- aucun cout variable
+- comportement stable et reproductible
+- bonne adequation avec un scope day 1 limite a la qualification
 
-## Pourquoi je n'ai pas choisi un setup local pour ce run
+## Pourquoi je n'ai pas choisi un LLM local pour ce run
 
-Un setup local aurait ajoute plusieurs inconnues des le day 1 :
+Un vrai LLM local aurait ajoute plusieurs inconnues des le day 1 :
 
 - qualite variable selon la machine et le modele
-- temps de setup plus long que la valeur de l'exercice
-- risque de confondre evaluation de l'agent et evaluation de l'infrastructure
+- consommation machine inutile pour un besoin simple
+- temps de setup plus long que la valeur pedagogique du livrable
 
 Pour un premier exercice, c'est une mauvaise priorite.
 
-## Donnees envoyees au cloud
+## Donnees traitees
 
-Dans ce flux, les donnees potentiellement envoyees sont :
+Dans ce flux, les donnees restent locales :
 
 - le texte du besoin prospect
 - quelques metadonnees commerciales
 - les hypotheses de budget, delai ou contenus
 
-Donnees a exclure par defaut :
+Donnees a proteger malgre tout :
 
 - secrets
 - acces clients
@@ -52,33 +54,22 @@ Donnees a exclure par defaut :
 
 ## Cout potentiel
 
-Le cout est faible pour un run manuel de qualification.
+- cout logiciel : nul
+- cout execution : negligeable
+- cout maintenance : faible tant que l'agent reste simple
 
-Il devient significatif uniquement si :
+## Limites du choix local
 
-- le volume de demandes augmente fortement
-- on ajoute plusieurs passes de raisonnement
-- on orchestre plusieurs agents sur chaque lead
-
-Conclusion pratique :
-
-- day 1 : cout acceptable
-- a partir d'un vrai volume : suivre le cout par run et definir un budget mensuel
-
-Je n'indique pas de chiffre exact ici car ce serait fragile sans verrouiller le modele et la grille tarifaire du moment. A verifier avant usage recurrent.
-
-## Limites du choix cloud
-
-- dependance fournisseur
-- surface d'exposition des donnees plus large qu'en local
-- cout variable
-- necessite d'une politique claire sur ce qui peut etre envoye
+- moins flexible qu'un LLM
+- couverture fonctionnelle limitee aux regles implementees
+- qualite de reformulation inferieure a un bon modele cloud
+- necessite de faire evoluer les heuristiques a la main
 
 ## Decision MVP
 
 Le choix rationnel pour cet exercice est :
 
-- memoire et documentation dans le repo local
-- qualification textuelle via OpenAI cloud
+- memoire, logique et preuves dans le repo local
+- qualification textuelle via un agent CLI deterministe
 
-Si demain le besoin evolue vers de gros volumes ou des donnees plus sensibles, il faudra reevaluer un mode hybride ou local. Pas avant.
+Si demain le besoin evolue vers plus de cas ou des formulations plus floues, il faudra reevaluer un LLM local ou hybride. Pas avant.

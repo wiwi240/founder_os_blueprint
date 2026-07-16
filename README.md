@@ -51,33 +51,58 @@ Etat actuel : `day 1 blueprint`
 - livrables day 1 prepares
 
 Ce repo ne contient pas encore d'automatisation metier, de scripts d'orchestration ni d'integrations externes reelles.
+Il contient maintenant un premier agent local leger executable en CLI.
 
 ## How To Run
 
-Ce repo n'est pas une application executable.
-
-Le bon usage actuel est un run manuel du premier agent de qualification, a partir des prompts et documents fournis.
+Ce repo contient un agent local minimal executable en ligne de commande.
 
 ### Pre-requis
 
-- un compte sur un fournisseur LLM compatible, par exemple OpenAI
-- une interface chat ou API pour coller un system prompt et un user prompt
-- ce repo clone localement pour stocker les preuves
+- `python3`
+- ce repo clone localement
 
-### Run minimal
+### Commandes
 
-1. Ouvrir [docs/first-agent-config.md](/home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/docs/first-agent-config.md) pour lire le role, les instructions et le format attendu.
-2. Ouvrir [exports/founder-os-qualifier-openai-run.md](/home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/exports/founder-os-qualifier-openai-run.md).
-3. Copier le `System Prompt` dans ton outil LLM.
-4. Envoyer le `User Prompt` fourni.
-5. Verifier que la sortie contient au minimum :
-   - besoin reformule
-   - agents a mobiliser
-   - risque principal
-   - validation humaine requise ou non
-   - prochaine action
-6. Enregistrer la preuve de run dans [evidence/runs/day-1-first-agent.md](/home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/evidence/runs/day-1-first-agent.md) si la sortie finale change.
-7. Ajouter les captures dans [evidence/screenshots/README.md](/home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/evidence/screenshots/README.md) en suivant la checklist du dossier.
+Run texte simple :
+
+```bash
+python3 scripts/founder_os_qualifier.py "Un artisan me demande un site vitrine pour vendre ses prestations de renovation. Il veut savoir le prix, le delai et ce qu'il doit fournir."
+```
+
+Run JSON :
+
+```bash
+python3 scripts/founder_os_qualifier.py --json "Un artisan me demande un site vitrine pour vendre ses prestations de renovation. Il veut savoir le prix, le delai et ce qu'il doit fournir."
+```
+
+Run depuis un fichier texte :
+
+```bash
+python3 scripts/founder_os_qualifier.py --input-file path/to/request.txt
+```
+
+Run via stdin :
+
+```bash
+echo "Un artisan me demande un site vitrine pour vendre ses prestations de renovation. Il veut savoir le prix, le delai et ce qu'il doit fournir." | python3 scripts/founder_os_qualifier.py
+```
+
+### Verification
+
+La sortie doit contenir au minimum :
+
+- besoin reformule
+- agents a mobiliser
+- risque principal
+- validation humaine requise ou non
+- prochaine action
+
+### Reference
+
+- configuration : [docs/first-agent-config.md](</home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/docs/first-agent-config.md>)
+- preuve locale de reference : [evidence/runs/day-1-first-agent-local.md](</home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/evidence/runs/day-1-first-agent-local.md>)
+- captures eventuelles : `evidence/screenshots/`
 
 ### Resultat attendu
 
@@ -85,10 +110,9 @@ Le run doit produire une qualification simple et prudente, sans promesse commerc
 
 ### Limites
 
-- aucun script local ne lance encore l'agent
-- aucune orchestration automatique n'est implementee
-- un vrai run outille depend d'un compte fournisseur valide
-- l'ouverture de PR depend de ton auth GitHub locale
+- l'agent repose sur des regles simples, pas sur un raisonnement LLM
+- aucune orchestration multi-agents n'est implementee
+- la couverture des cas depend des heuristiques codees
 
 ## Logique MVP
 
