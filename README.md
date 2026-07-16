@@ -48,9 +48,47 @@ Etat actuel : `day 1 blueprint`
 - structure du repo creee
 - documentation principale redigee
 - branche de travail creee
-- PR ouverte pour revue
+- livrables day 1 prepares
 
 Ce repo ne contient pas encore d'automatisation metier, de scripts d'orchestration ni d'integrations externes reelles.
+
+## How To Run
+
+Ce repo n'est pas une application executable.
+
+Le bon usage actuel est un run manuel du premier agent de qualification, a partir des prompts et documents fournis.
+
+### Pre-requis
+
+- un compte sur un fournisseur LLM compatible, par exemple OpenAI
+- une interface chat ou API pour coller un system prompt et un user prompt
+- ce repo clone localement pour stocker les preuves
+
+### Run minimal
+
+1. Ouvrir [docs/first-agent-config.md](/home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/docs/first-agent-config.md) pour lire le role, les instructions et le format attendu.
+2. Ouvrir [exports/founder-os-qualifier-openai-run.md](/home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/exports/founder-os-qualifier-openai-run.md).
+3. Copier le `System Prompt` dans ton outil LLM.
+4. Envoyer le `User Prompt` fourni.
+5. Verifier que la sortie contient au minimum :
+   - besoin reformule
+   - agents a mobiliser
+   - risque principal
+   - validation humaine requise ou non
+   - prochaine action
+6. Enregistrer la preuve de run dans [evidence/runs/day-1-first-agent.md](/home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/evidence/runs/day-1-first-agent.md) si la sortie finale change.
+7. Ajouter les captures dans [evidence/screenshots/README.md](/home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/evidence/screenshots/README.md) en suivant la checklist du dossier.
+
+### Resultat attendu
+
+Le run doit produire une qualification simple et prudente, sans promesse commerciale ferme sur le prix ou le delai sans validation humaine.
+
+### Limites
+
+- aucun script local ne lance encore l'agent
+- aucune orchestration automatique n'est implementee
+- un vrai run outille depend d'un compte fournisseur valide
+- l'ouverture de PR depend de ton auth GitHub locale
 
 ## Logique MVP
 
