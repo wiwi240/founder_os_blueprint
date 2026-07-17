@@ -28,6 +28,7 @@ Le but est de definir clairement :
 - `evidence/screenshots/` : captures et preuves visuelles
 - `evidence/runs/` : traces d'execution et journaux de runs
 - `exports/` : livrables exportes ou documents intermediaires
+- `automations/n8n/` : bonus no-code versionne pour actions importables
 - `vault/` : memoire locale type Obsidian
 
 ## Agents couverts
@@ -50,8 +51,8 @@ Etat actuel : `day 1 blueprint`
 - branche de travail creee
 - livrables day 1 prepares
 
-Ce repo ne contient pas encore d'automatisation metier, de scripts d'orchestration ni d'integrations externes reelles.
-Il contient maintenant un premier agent local leger executable en CLI.
+Ce repo ne contient pas encore d'automatisation metier complete ni d'integrations externes reelles en production.
+Il contient maintenant deux actions locales executables en CLI et un bonus `n8n` importable pour `draft_email_reply`.
 
 ## How To Run
 
@@ -88,6 +89,12 @@ Run via stdin :
 echo "Un artisan me demande un site vitrine pour vendre ses prestations de renovation. Il veut savoir le prix, le delai et ce qu'il doit fournir." | python3 scripts/founder_os_qualifier.py
 ```
 
+Recherche documentaire :
+
+```bash
+python3 scripts/search_knowledge_base.py --json "quelles actions demandent une validation humaine dans la policy"
+```
+
 ### Verification
 
 La sortie doit contenir au minimum :
@@ -111,8 +118,15 @@ Le run doit produire une qualification simple et prudente, sans promesse commerc
 ### Limites
 
 - l'agent repose sur des regles simples, pas sur un raisonnement LLM
-- aucune orchestration multi-agents n'est implementee
+- aucune orchestration multi-agents complete n'est implementee
 - la couverture des cas depend des heuristiques codees
+
+## Bonus
+
+Un workflow `n8n` importable est disponible pour l'action `draft_email_reply` :
+
+- [automations/n8n/draft-email-reply-workflow.json](/home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/automations/n8n/draft-email-reply-workflow.json:1)
+- [automations/n8n/README.md](/home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/automations/n8n/README.md:1)
 
 ## Logique MVP
 

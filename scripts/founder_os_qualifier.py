@@ -12,15 +12,25 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Qualification:
-    reformulation: str
-    agents: list[str]
-    risk: str
+    lead_name: str
+    source: str
+    summary: str
+    pain_level: str
+    fit_score: int
+    estimated_scope: str
+    risks: list[str]
+    missing_information: list[str]
+    recommended_agents: list[str]
     human_validation_required: bool
     next_action: str
 
 
 def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip().lower())
+
+
+def dedupe(items: list[str]) -> list[str]:
+    return list(dict.fromkeys(items))
 
 
 def detect_agents(request: str) -> list[str]:
@@ -43,22 +53,31 @@ def detect_agents(request: str) -> list[str]:
     ):
         agents.append("Agent SEO")
 
-    return agents
+    return dedupe(agents)
 
 
-def detect_risk(request: str) -> str:
+def detect_risks(request: str) -> list[str]:
     text = normalize(request)
+    risks: list[str] = []
 
     if any(keyword in text for keyword in ["prix", "budget", "devis", "tarif", "delai"]):
-        return (
+        risks.append(
             "Annoncer un prix ou un delai trop tot sans avoir cadre le nombre de pages, "
-            "les contenus disponibles, les besoins SEO et les fonctionnalités attendues."
+            "les contenus disponibles, les besoins SEO et les fonctionnalites attendues."
         )
 
-    return (
-        "Mal qualifier le perimetre de la demande et lancer un cadrage trop vague, ce qui "
-        "cree ensuite du scope creep et des promesses floues."
-    )
+    if any(keyword in text for keyword in ["site", "vitrine", "refonte", "seo"]):
+        risks.append(
+            "Mal qualifier le perimetre de la demande et lancer un cadrage trop vague, ce qui "
+            "cree ensuite du scope creep et des promesses floues."
+        )
+
+    if not risks:
+        risks.append(
+            "Informations insuffisantes pour evaluer le besoin sans risque d'extrapolation."
+        )
+
+    return risks
 
 
 def build_reformulation(request: str) -> str:
@@ -79,9 +98,63 @@ def build_reformulation(request: str) -> str:
     )
 
 
+def detect_pain_level(request: str) -> str:
+    text = normalize(request)
+
+    if any(keyword in text for keyword in ["urgent", "delai", "rapidement", "vite"]):
+        return "high"
+    if any(keyword in text for keyword in ["prix", "budget", "devis", "site", "seo"]):
+        return "medium"
+    return "low"
+
+
+def estimate_scope(request: str) -> str:
+    text = normalize(request)
+
+    if "site vitrine" in text:
+        return "site vitrine MVP"
+    if "seo" in text or "referencement" in text:
+        return "audit SEO initial"
+    return "a qualifier"
+
+
+def detect_missing_information(request: str) -> list[str]:
+    text = normalize(request)
+    missing: list[str] = []
+
+    if not any(keyword in text for keyword in ["page", "pages"]):
+        missing.append("nombre_de_pages")
+    if "contenu" not in text and "textes" not in text:
+        missing.append("contenus_disponibles")
+    if "zone geographique" not in text and "local" not in text and "ville" not in text:
+        missing.append("zone_geographique_cible")
+    if "delai" not in text and "urgent" not in text:
+        missing.append("niveau_urgence")
+    if "budget" not in text and "prix" not in text and "devis" not in text:
+        missing.append("budget_indicatif")
+
+    return missing
+
+
 def requires_human_validation(request: str) -> bool:
     text = normalize(request)
     return any(keyword in text for keyword in ["prix", "budget", "devis", "tarif", "delai"])
+
+
+def detect_fit_score(request: str) -> int:
+    text = normalize(request)
+    score = 40
+
+    if any(keyword in text for keyword in ["site", "vitrine", "seo", "google"]):
+        score += 20
+    if any(keyword in text for keyword in ["artisan", "commerce", "prestations"]):
+        score += 15
+    if any(keyword in text for keyword in ["prix", "devis", "budget"]):
+        score += 10
+    if len(detect_missing_information(request)) <= 2:
+        score += 10
+
+    return min(score, 95)
 
 
 def next_action(request: str) -> str:
@@ -103,22 +176,36 @@ def next_action(request: str) -> str:
 
 def qualify(request: str) -> Qualification:
     return Qualification(
-        reformulation=build_reformulation(request),
-        agents=detect_agents(request),
-        risk=detect_risk(request),
+        lead_name="A verifier",
+        source="inbound_request",
+        summary=build_reformulation(request),
+        pain_level=detect_pain_level(request),
+        fit_score=detect_fit_score(request),
+        estimated_scope=estimate_scope(request),
+        risks=detect_risks(request),
+        missing_information=detect_missing_information(request),
+        recommended_agents=detect_agents(request),
         human_validation_required=requires_human_validation(request),
         next_action=next_action(request),
     )
 
 
 def to_text(result: Qualification) -> str:
-    agent_lines = "\n".join(f"- {agent}" for agent in result.agents)
+    agent_lines = "\n".join(f"- {agent}" for agent in result.recommended_agents)
+    risk_lines = "\n".join(f"- {risk}" for risk in result.risks)
+    missing_lines = "\n".join(f"- {item}" for item in result.missing_information) or "- aucune"
     validation = "Oui" if result.human_validation_required else "Non"
 
     return (
-        f"Besoin reformule :\n{result.reformulation}\n\n"
+        f"Lead name :\n{result.lead_name}\n\n"
+        f"Source :\n{result.source}\n\n"
+        f"Besoin reformule :\n{result.summary}\n\n"
+        f"Pain level :\n{result.pain_level}\n\n"
+        f"Fit score :\n{result.fit_score}\n\n"
+        f"Estimated scope :\n{result.estimated_scope}\n\n"
+        f"Risques :\n{risk_lines}\n\n"
+        f"Informations manquantes :\n{missing_lines}\n\n"
         f"Agents a mobiliser :\n{agent_lines}\n\n"
-        f"Risque principal :\n{result.risk}\n\n"
         f"Validation humaine requise :\n{validation}\n\n"
         f"Prochaine action :\n{result.next_action}\n"
     )
@@ -149,11 +236,17 @@ def main() -> int:
         print(
             json.dumps(
                 {
-                    "besoin_reformule": result.reformulation,
-                    "agents_a_mobiliser": result.agents,
-                    "risque_principal": result.risk,
-                    "validation_humaine_requise": result.human_validation_required,
-                    "prochaine_action": result.next_action,
+                    "lead_name": result.lead_name,
+                    "source": result.source,
+                    "summary": result.summary,
+                    "pain_level": result.pain_level,
+                    "fit_score": result.fit_score,
+                    "estimated_scope": result.estimated_scope,
+                    "risks": result.risks,
+                    "missing_information": result.missing_information,
+                    "recommended_agents": result.recommended_agents,
+                    "human_validation_required": result.human_validation_required,
+                    "next_action": result.next_action,
                 },
                 ensure_ascii=True,
                 indent=2,
