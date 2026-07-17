@@ -1,0 +1,108 @@
+{
+  "name": "Founder OS - Draft Email Reply",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "lead_name",
+              "value": "Atelier Rive Gauche"
+            },
+            {
+              "name": "context",
+              "value": "Le prospect demande s'il est possible d'avoir un devis rapide pour un site vitrine de 5 pages."
+            },
+            {
+              "name": "goal",
+              "value": "proposer un cadrage court avant estimation"
+            },
+            {
+              "name": "tone",
+              "value": "professional"
+            }
+          ]
+        }
+      },
+      "id": "sample-input",
+      "name": "Sample Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "jsonOutput": "{\n  \"subject\": \"Re: estimation pour votre site vitrine\",\n  \"recipient_context\": \"={{$json.context}}\",\n  \"tone\": \"={{$json.tone}}\",\n  \"goal\": \"obtenir les informations minimales avant estimation\",\n  \"body_markdown\": \"={{'Bonjour ' + $json.lead_name + ',\\n\\nMerci pour votre message. Je peux preparer une estimation de travail, mais j\\'ai besoin de confirmer quelques points d\\'abord : nombre de pages exact, contenus deja disponibles, objectifs commerciaux et delai souhaite.\\n\\nSi vous voulez, je vous envoie un mini questionnaire ou nous prenons un appel de 15 minutes.\\n\\nBien a vous,'}}\",\n  \"cta\": \"Choisir entre questionnaire ou appel court\",\n  \"approval_status\": \"draft_only\",\n  \"warnings\": [\n    \"Ne pas envoyer sans validation humaine\",\n    \"Ne pas annoncer de prix ferme dans ce brouillon\"\n  ]\n}"
+      },
+      "id": "compose-draft",
+      "name": "Compose Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sample Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Input": {
+      "main": [
+        [
+          {
+            "node": "Compose Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "day-2-tool-catalog-bonus",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "founder-os-draft-email-reply",
+  "tags": [
+    {
+      "name": "founder-os"
+    },
+    {
+      "name": "bonus"
+    },
+    {
+      "name": "draft-only"
+    }
+  ]
+}
