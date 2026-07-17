@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 import json
 import re
 import sys
@@ -77,10 +78,16 @@ FOLDER_WEIGHTS = {
 
 
 @dataclass(frozen=True)
+class Snippet:
+    line_number: int
+    text: str
+
+
+@dataclass(frozen=True)
 class NoteMatch:
     path: str
-    score: int
-    snippets: list[str]
+    score: float
+    snippets: list[Snippet]
 
 
 @dataclass(frozen=True)
@@ -99,6 +106,27 @@ def normalize(text: str) -> list[str]:
     ]
 
 
+def split_sections(text: str) -> list[tuple[str, list[tuple[int, str]]]]:
+    sections: list[tuple[str, list[tuple[int, str]]]] = []
+    current_title = "document"
+    current_lines: list[tuple[int, str]] = []
+
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            if current_lines:
+                sections.append((current_title, current_lines))
+            current_title = stripped.lstrip("#").strip().lower()
+            current_lines = [(line_number, line)]
+            continue
+        current_lines.append((line_number, line))
+
+    if current_lines:
+        sections.append((current_title, current_lines))
+
+    return sections
+
+
 def iter_notes() -> list[Path]:
     notes: list[Path] = []
     for path in VAULT.rglob("*"):
@@ -107,45 +135,92 @@ def iter_notes() -> list[Path]:
     return sorted(notes)
 
 
-def note_score(path: Path, text: str, keywords: list[str]) -> tuple[int, list[str]]:
-    lowered = text.lower()
-    score = FOLDER_WEIGHTS.get(path.parts[-2], 0)
-    snippets: list[str] = []
+def score_section(title: str, lines: list[tuple[int, str]], keywords: list[str]) -> tuple[float, list[Snippet]]:
+    snippets: list[Snippet] = []
+    score = 0.0
+    full_text = "\n".join(line for _, line in lines).lower()
 
     for keyword in keywords:
-        if keyword in lowered:
-            score += 2
+        frequency = full_text.count(keyword)
+        if frequency:
+            score += 1.2 + math.log1p(frequency)
 
-    for line in text.splitlines():
+    if "coach signals" in title:
+        score += 3.5
+    if "current gaps" in title:
+        score += 3.0
+    if "this week candidates" in title:
+        score += 4.0
+    if "offer" in title or "client" in title:
+        score += 1.0
+
+    for line_number, line in lines:
         stripped = line.strip()
-        lowered_line = stripped.lower()
+        lowered = stripped.lower()
         if not stripped:
             continue
-        if any(keyword in lowered_line for keyword in keywords):
-            snippets.append(stripped)
-            score += 1
-        if "coach signals" in lowered_line:
-            score += 2
-            snippets.append(stripped)
-        if "this week candidates" in lowered_line or "current gaps" in lowered_line:
-            snippets.append(stripped)
+        if any(keyword in lowered for keyword in keywords):
+            score += 1.0
+            snippets.append(Snippet(line_number=line_number, text=stripped))
+        elif stripped.startswith("- ") and any(
+            marker in lowered
+            for marker in [
+                "learn",
+                "write",
+                "create",
+                "practice",
+                "define",
+                "qualify",
+                "discovery",
+                "objection",
+                "seo",
+                "scope",
+                "offer",
+            ]
+        ):
+            snippets.append(Snippet(line_number=line_number, text=stripped))
 
-    if "this week candidates" in lowered:
-        score += 4
-    if "current gaps" in lowered:
-        score += 2
+    return score, snippets[:4]
+
+
+def note_score(path: Path, text: str, keywords: list[str]) -> tuple[float, list[Snippet]]:
+    lowered = text.lower()
+    score = float(FOLDER_WEIGHTS.get(path.parts[-2], 0))
+    snippets: list[Snippet] = []
+
+    phrase = " ".join(keywords)
+    if phrase and phrase in lowered:
+        score += 4.0
+
+    section_scores: list[tuple[float, list[Snippet]]] = []
+    for title, lines in split_sections(text):
+        section_scores.append(score_section(title, lines, keywords))
+
+    section_scores.sort(key=lambda item: item[0], reverse=True)
+    for section_score, section_snippets in section_scores[:2]:
+        score += section_score
+        snippets.extend(section_snippets)
+
     if "learn" in lowered:
-        score += 2
+        score += 1.5
 
     if not snippets:
-        for line in text.splitlines():
+        for line_number, line in enumerate(text.splitlines(), start=1):
             stripped = line.strip()
             if stripped.startswith("- "):
-                snippets.append(stripped)
+                snippets.append(Snippet(line_number=line_number, text=stripped))
             if len(snippets) >= 3:
                 break
 
-    return score, snippets[:4]
+    deduped: list[Snippet] = []
+    seen: set[tuple[int, str]] = set()
+    for snippet in snippets:
+        key = (snippet.line_number, snippet.text)
+        if key not in seen:
+            deduped.append(snippet)
+            seen.add(key)
+
+    return score, deduped[:4]
 
 
 def collect_learning_actions(sources: list[NoteMatch]) -> list[str]:
@@ -258,12 +333,18 @@ def to_text(result: CoachResponse) -> str:
     if result.sources:
         source_blocks = []
         for source in result.sources:
-            snippets = " | ".join(source.snippets) if source.snippets else "A verifier"
+            snippets = (
+                " | ".join(
+                    f"L{snippet.line_number}: {snippet.text}" for snippet in source.snippets
+                )
+                if source.snippets
+                else "A verifier"
+            )
             source_blocks.append(
                 "\n".join(
                     [
                         f"- source: {source.path}",
-                        f"  score: {source.score}",
+                        f"  score: {source.score:.2f}",
                         f"  snippets: {snippets}",
                     ]
                 )
@@ -310,7 +391,13 @@ def main() -> int:
                         {
                             "path": source.path,
                             "score": source.score,
-                            "snippets": source.snippets,
+                            "snippets": [
+                                {
+                                    "line_number": snippet.line_number,
+                                    "text": snippet.text,
+                                }
+                                for snippet in source.snippets
+                            ],
                         }
                         for source in result.sources
                     ],

@@ -28,7 +28,7 @@ Benefits:
 
 Limits:
 
-- search is lexical, not semantic
+- retrieval is local and section-aware, but still lexical rather than embedding-based
 - no embeddings, vector index or automated chunking
 - no multi-user sync workflow is configured here
 
@@ -64,9 +64,9 @@ python3 scripts/coach_memory_agent.py --json "A partir de mes notes, que dois-je
 Behavior:
 
 - read local notes from `vault/`
-- score relevant notes
+- score relevant notes by folder weight and section relevance
 - generate a short weekly learning priority
-- cite the notes used
+- cite the notes used with short excerpts and line numbers
 - avoid claims unsupported by the vault
 
 ## Why Not Cloud Or No-Code Here

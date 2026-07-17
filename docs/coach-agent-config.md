@@ -25,7 +25,7 @@ A partir de mes notes, que dois-je apprendre cette semaine pour mieux lancer mon
 
 - read only local vault notes
 - do not invent facts absent from the notes
-- cite the note paths used in the answer
+- cite the note paths used in the answer with line-numbered excerpts
 - keep recommendations tied to short-term offer launch
 - state limits clearly when retrieval is weak
 
@@ -37,6 +37,6 @@ python3 scripts/coach_memory_agent.py --json "A partir de mes notes, que dois-je
 
 ## Limits
 
-- keyword retrieval only
+- section-aware lexical retrieval only
 - no embeddings
-- no exact line citations
+- no semantic vector search
