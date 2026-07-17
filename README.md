@@ -23,6 +23,8 @@ Le but est de definir clairement :
 - `docs/architecture.md` : architecture cible et schema Mermaid
 - `docs/agent-roles.md` : definition detaillee des agents
 - `docs/permissions-policy.md` : politique de permissions et actions sensibles
+- `docs/memory-setup.md` : choix de la memoire locale et branchement du Coach
+- `docs/coach-agent-config.md` : configuration du Coach local
 - `docs/provider-choice.md` : choix provisoire entre local, cloud ou hybride
 - `docs/run-journal.md` : journal de travail du jour 1
 - `evidence/screenshots/` : captures et preuves visuelles
@@ -95,6 +97,12 @@ Recherche documentaire :
 python3 scripts/search_knowledge_base.py --json "quelles actions demandent une validation humaine dans la policy"
 ```
 
+Run Coach memoire :
+
+```bash
+python3 scripts/coach_memory_agent.py --json "A partir de mes notes, que dois-je apprendre cette semaine pour mieux lancer mon offre ?"
+```
+
 ### Verification
 
 La sortie doit contenir au minimum :
@@ -108,7 +116,9 @@ La sortie doit contenir au minimum :
 ### Reference
 
 - configuration : [docs/first-agent-config.md](</home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/docs/first-agent-config.md>)
+- configuration Coach : [docs/coach-agent-config.md](</home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/docs/coach-agent-config.md>)
 - preuve locale de reference : [evidence/runs/day-1-first-agent-local.md](</home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/evidence/runs/day-1-first-agent-local.md>)
+- preuve locale Coach : [evidence/runs/day-2-coach-memory.md](</home/mon_pc/project/github/module%20thp/agent-builder/founder%20os/founder-_os_blueprint/evidence/runs/day-2-coach-memory.md>)
 - captures eventuelles : `evidence/screenshots/`
 
 ### Resultat attendu
